@@ -13,7 +13,6 @@ from tqdm import tqdm
 from .sqlite_parser import SQLiteParser
 from .WAL_parser import WALParser
 from .journal_parser import JournalParser
-from .visualizer import Visualizer
 
 class GUI:
     def __init__(self):
