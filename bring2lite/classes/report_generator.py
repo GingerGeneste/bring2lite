@@ -4,6 +4,11 @@ import csv
 from tqdm import tqdm
 
 
+def create_path_if_it_doesnt_exist(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
 class ReportGenerator:
     def __init__(self):
         self.my_path = ""
@@ -20,8 +25,7 @@ class ReportGenerator:
         if data is None:
             return
 
-        if not os.path.exists(path):
-            os.makedirs(path)
+        create_path_if_it_doesnt_exist(path)
 
         # Iterator to create CSV from
         out = []
@@ -65,9 +69,7 @@ class ReportGenerator:
     def generate_schema_report(self, path, filename, data, csv):
         if data is None:
             return
-
-        if not os.path.exists(path):
-            os.makedirs(path)
+        create_path_if_it_doesnt_exist(path)
 
         out = ""
         with open(path + "/" + filename + '.log', "a") as f:
@@ -86,9 +88,7 @@ class ReportGenerator:
     def generate_freeblock_report(self, path, filename, freeblocks):
         if freeblocks is None:
             return
-
-        if not os.path.exists(path):
-            os.makedirs(path)
+        create_path_if_it_doesnt_exist(path)
 
         with open(path + "/" + filename + '.log', "a") as f:
             for solutions in freeblocks:
