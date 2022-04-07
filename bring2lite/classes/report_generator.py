@@ -30,7 +30,10 @@ class ReportGenerator:
         # Iterator to create CSV from
         out = []
         # If a schema is found, add the column types to the top of the log file:
-        out.append(schema)
+        if schema:
+            out.append(schema)
+        else:
+            out.append(['no schema found'])
         # A 'frame' is actually a possible carved record
         # Represented as a list where each element is a list containing the type of
         # column value and the column value itself
