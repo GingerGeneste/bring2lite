@@ -46,6 +46,9 @@ class ReportGenerator:
             out.append(csv_row)
 
         # Write results
+        self.write_to_file(filename, path, out)
+
+    def write_to_file(self, filename, path, out):
         file_out = f'{path}/test_{filename}.log'
         if os.path.exists(file_out):
             tqdm.write(f"Logfile {filename} already exists! Overwriting the results.")
