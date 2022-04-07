@@ -1,11 +1,6 @@
 import os
 import hashlib
 from tqdm import tqdm
-from colorama import *
-import binascii
-from tkinter import *
-from tkinter.filedialog import askopenfilename
-from tkinter.filedialog import askdirectory
 
 class ReportGenerator:
     def __init__(self):
