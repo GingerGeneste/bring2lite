@@ -1,5 +1,6 @@
 import os
 import hashlib
+import csv
 from tqdm import tqdm
 
 class ReportGenerator:
@@ -13,32 +14,31 @@ class ReportGenerator:
         if not os.path.exists(path):
             os.makedirs(path)
 
-        if data:
-            out = ""
-            for datatype in schema:
-                out += str(datatype) + ","
+        out = ""
+        for datatype in schema:
+            out += str(datatype) + ","
+        out += "\n"
+
+        for frame in data:
+            if isinstance(frame, list):
+                for y in frame:
+                    if self.is_text(y[0]):
+                        try:
+                            out += str(y[1].decode('utf-8')) + ","
+                        except UnicodeDecodeError:
+                            out +=str(y[1]) + ","
+                            continue
+                    else:
+                        out += str(y[1]) + ","
             out += "\n"
+        out += "++++++++++++++++++++++++++++\n"
+        try:
+            with open(path + "/" + filename + '.log', "a") as f:
+                f.write(out)
+        except UnicodeEncodeError:
+            tqdm.write("can not write the record because of unicode errors")
 
-            for frame in data:
-                if isinstance(frame, list):
-                    for y in frame:
-                        if self.is_text(y[0]):
-                            try:
-                                out += str(y[1].decode('utf-8')) + ","
-                            except UnicodeDecodeError:
-                                out +=str(y[1]) + ","
-                                continue
-                        else:
-                            out += str(y[1]) + ","
-                out += "\n"
-            out += "++++++++++++++++++++++++++++\n"
-            try:
-                with open(path + "/" + filename + '.log', "a") as f:
-                    f.write(out)
-            except UnicodeEncodeError:
-                tqdm.write("can not write the record because of unicode errors")
-
-            self.print_hash(path + "/" + filename + '.log')
+        self.print_hash(path + "/" + filename + '.log')
 
     def generate_schema_report(self, path, filename, data, csv):
         if data is None:
