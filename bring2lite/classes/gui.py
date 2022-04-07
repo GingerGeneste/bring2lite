@@ -7,20 +7,13 @@ import sys
 import os
 from pathlib import Path
 #statusbar
-#GUI
-from tkinter import *
-from tkinter.filedialog import askopenfilename
-from tkinter.filedialog import askdirectory
-
 from tqdm import tqdm
 #own classes
 from .sqlite_parser import SQLiteParser
 from .WAL_parser import WALParser
 from .journal_parser import JournalParser
-from .visualizer import Visualizer
 
 class GUI:
-    gui_on = FALSE
     def __init__(self):
         self.logger = logging.getLogger("parser.gui")
         self.sqlites = []
@@ -40,103 +33,49 @@ class GUI:
         argparser.add_argument("--journal", default="", help='name of the SQLite database file', nargs='*')
         argparser.add_argument("--out", help='where you want to place the results of this process', nargs='?')
         argparser.add_argument("--format", default="CSV", help='output format XML, JSON, CSV - defualt: CSV', nargs='?')
-        argparser.add_argument("--gui", default=0, help='If the flag is set to true the gui will start', nargs='?')
         args = argparser.parse_args()
         if len(sys.argv) == 1:
             argparser.print_help()
-            exit(666)
+            exit()
 
-        if args.gui is '1':
-            self.gui_on = TRUE
+        for f in args.folder:
+            if os.path.exists(os.path.abspath(f)) and len(f) > 0:
+                for subdir, dirs, files in os.walk(os.path.abspath(f)):
+                    for file in files:
+                        filepath = subdir + os.sep + file
+                        if filepath.endswith(".sqlite") or filepath.endswith(".db"):
+                            self.sqlites.append(filepath)
+                        elif filepath.endswith("-wal"):
+                            self.wals.append(filepath)
+                        elif filepath.endswith("-journal"):
+                            self.journals.append(filepath)
 
-        if self.gui_on:
-            top = Tk()
-            top.geometry("500x500")
-            top.title("bring2lite")
-            #SELECTED FILE
-            file_button = Button(top, text="Select File", command=self.select_file)
-            file_button.pack(anchor=NW)
-            self.list = Listbox(top)
-            self.list.config(width=80)
-            self.list.pack(anchor=NW)
-            #OUTPUT FOLDER
-            file_button = Button(top, text="Output Folder", command=self.select_out_file)
-            file_button.pack(anchor=NW)
-            self.output_text = Label(top)
-            self.output_text.pack(anchor=NW)
-            #OUTPUT
-            start_button = Button(top, text="Start", command=self.process)
-            start_button.pack(anchor=S)
-            exit_button = Button(top, text="Exit", command=exit)
-            exit_button.pack(anchor=S)
-            #self.sqlites.append('F:\\newOC\\MA\\SQLite-parser\\sqllite-parser\\db\\9main.db')
-            #self.output = 'F:\\newOC\\MA\\SQLite-parser\\sqllite-parser\\result'
-            top.mainloop()
+        for f in args.filename:
+            if (Path(os.path.abspath(f))).is_file():
+                self.sqlites.append(os.path.abspath(f))
+
+        for f in args.wal:
+            if (Path(os.path.abspath(f))).is_file():
+                self.wals.append(os.path.abspath(f))
+
+        for f in args.journal:
+            if (Path(os.path.abspath(f))).is_file():
+                self.journals.append(os.path.abspath(f))
+
+        if not (len(self.sqlites) > 0 or len(self.wals) > 0 or len(self.journals) > 0):
+            exit("No files to parse")
+
+        if os.path.exists(os.path.abspath(args.out)):
+            self.output = os.path.abspath(args.out)
         else:
-            for f in args.folder:
-                if os.path.exists(os.path.abspath(f)) and len(f) > 0:
-                    for subdir, dirs, files in os.walk(os.path.abspath(f)):
-                        for file in files:
-                            filepath = subdir + os.sep + file
-                            if filepath.endswith(".sqlite") or filepath.endswith(".db"):
-                                self.sqlites.append(filepath)
-                            elif filepath.endswith("-wal"):
-                                self.wals.append(filepath)
-                            elif filepath.endswith("-journal"):
-                                self.journals.append(filepath)
+            os.makedirs(os.path.abspath(args.out))
+            self.output = os.path.abspath(args.out)
 
-            for f in args.filename:
-                if (Path(os.path.abspath(f))).is_file():
-                    self.sqlites.append(os.path.abspath(f))
-
-            for f in args.wal:
-                if (Path(os.path.abspath(f))).is_file():
-                    self.wals.append(os.path.abspath(f))
-
-            for f in args.journal:
-                if (Path(os.path.abspath(f))).is_file():
-                    self.journals.append(os.path.abspath(f))
-
-            if not (len(self.sqlites) > 0 or len(self.wals) > 0 or len(self.journals) > 0):
-                exit("No files to parse")
-
-            if os.path.exists(os.path.abspath(args.out)):
-                self.output = os.path.abspath(args.out)
-            else:
-                os.makedirs(os.path.abspath(args.out))
-                self.output = os.path.abspath(args.out)
-
-            #CSV = 0 | XML = 1 | JSON = 2
-            if args.format is 'XML':
-                self.format = 1
-            elif args.format is 'JSON':
-                self.format = 2
-
-    def radio_select(self):
-        self.format = self.var.get()
-        print(self.format)
-
-    def select_file(self):
-        self.filename = askopenfilename()
-        self.sqlites.append(os.path.abspath(self.filename))
-        #self.sqlites.append('F:\\newOC\\MA\\SQLite-parser\\sqllite-parser\\db\\9main.db')
-        self.update_list()
-
-    def select_out_file(self):
-        filename = askdirectory()
-        self.output = os.path.abspath(filename)
-        #self.output = 'F:\\newOC\\MA\\SQLite-parser\\sqllite-parser\\result'
-        self.output_text.config(text="OUTPUT FOLDER: " + self.output)
-
-    def update_list(self):
-        self.list.delete(0, END)
-        for i in self.sqlites:
-            self.list.insert(END, i)
-        for i in self.wals:
-            self.list.insert(END, i)
-        for i in self.journals:
-            self.list.insert(END, i)
-
+        #CSV = 0 | XML = 1 | JSON = 2
+        if args.format == 'XML':
+            self.format = 1
+        elif args.format == 'JSON':
+            self.format = 2
 
     def process(self):
         self.start_processing_sqlite()
@@ -149,11 +88,7 @@ class GUI:
             tqdm.write("Processing main files")
             self.sqlp = SQLiteParser()
             for i in tqdm(self.sqlites):
-            #for i in self.sqlites:
                 self.d = self.sqlp.parse(i, self.output, self.format)
-                if self.gui_on:
-                    v = Visualizer()
-                    v.visualize(self.d)
 
         self.logger.debug("end of parsing")
 
