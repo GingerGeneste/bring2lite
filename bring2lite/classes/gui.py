@@ -37,7 +37,7 @@ class GUI:
         args = argparser.parse_args()
         if len(sys.argv) == 1:
             argparser.print_help()
-            exit(666)
+            exit()
 
         for f in args.folder:
             if os.path.exists(os.path.abspath(f)) and len(f) > 0:
