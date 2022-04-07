@@ -69,8 +69,6 @@ class GUI:
             start_button.pack(anchor=S)
             exit_button = Button(top, text="Exit", command=exit)
             exit_button.pack(anchor=S)
-            #self.sqlites.append('F:\\newOC\\MA\\SQLite-parser\\sqllite-parser\\db\\9main.db')
-            #self.output = 'F:\\newOC\\MA\\SQLite-parser\\sqllite-parser\\result'
             top.mainloop()
         else:
             for f in args.folder:
