@@ -3,6 +3,7 @@ import hashlib
 import csv
 from tqdm import tqdm
 
+
 class ReportGenerator:
     def __init__(self):
         self.my_path = ""
