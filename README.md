@@ -6,7 +6,7 @@ The tool was developed to process SQLite databases in respect of deleted records
 
 ## About the modifications
 My contributions are as follows (checked if already done): 
-- [x] Removed the GUI as this is a lot of overhad
+- [x] Removed the GUI as this is a lot of overhead
 - [ ] Update the way log files are written (escape ',')
 - [ ] Make the code a module
 
@@ -56,5 +56,5 @@ main.py --folder /path/to/folder --out /path/to/output/folder
 
 ## Changelog
 - 14-03-2019 - publication of version 0.1 by original author
-- 07-04-2022 - Forked project from [bring2lite](https://github.com/bring2lite/bring2lite)
+- 07-04-2022 - Forked project from [bring2lite](https://github.com/bring2lite/bring2lite), removed the GUI option
 
