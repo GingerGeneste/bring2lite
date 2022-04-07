@@ -7,7 +7,6 @@ import sys
 import os
 from pathlib import Path
 #statusbar
-
 from tqdm import tqdm
 #own classes
 from .sqlite_parser import SQLiteParser
