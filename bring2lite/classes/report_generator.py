@@ -13,10 +13,6 @@ class ReportGenerator:
         if not os.path.exists(path):
             os.makedirs(path)
 
-        # if format:
-        #     with open(path+filename+'.csv', 'w', newline='') as f:
-        #         writer = csv.writer(f)
-        #         writer.writerows(data)
         if data:
             out = ""
             for datatype in schema:
