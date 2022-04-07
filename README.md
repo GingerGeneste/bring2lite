@@ -1,6 +1,14 @@
 # bring2lite
-## About
+## About the original project
+This code has been forked from [bring2lite](https://github.com/bring2lite/bring2lite) . Also see the published paper by the original author of this tool: [bring2lite: A Structural Concept and Tool for Forensic Data Analysis and Recovery of Deleted SQLite Records](https://www.sciencedirect.com/science/article/pii/S1742287619301677).
+
 The tool was developed to process SQLite databases in respect of deleted records. Therefore, bring2lite is able to analyse the structures within the main database, WAL and journal files.
+
+## About the modifications
+My contributions are as follows (checked if already done): 
+- [x] Removed the GUI as this is a lot of overhad
+- [ ] Update the way log files are written (escape ',')
+- [ ] Make the code a module
 
 ## Requirements
 - Python3
@@ -55,9 +63,4 @@ main.py --filename /path/to/database/file --out /path/to/output/folder --gui 1
 - 14-03-2019 - publication of version 0.1
 
 ## Tasklist
-- [ ] Better error handling
-- [ ] Display all processed informations in a interactive GUI
-- [ ] Fix a bug that sometimes do not add the SQLite schema to the top of a outputfile
-- [ ] Fix a bug which adds a line of # after each outputline
-- [ ] Optimize parsing algorithm to process multiple freeblocks in a row
-- [ ] The name of a created file is off by one 
+
