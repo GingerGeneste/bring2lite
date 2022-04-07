@@ -50,9 +50,16 @@ class ReportGenerator:
             out.append(csv_row)
 
         # Write results
-        self.write_to_file(filename, path, out)
+        self.write_to_csv(filename, path, out)
 
-    def write_to_file(self, filename, path, out):
+    def write_to_csv(self, filename, path, out):
+        """
+        Write the contents of out to the filename by using the csv writer module
+        :param filename: name of the file to write to
+        :param path: path where the file will be written to
+        :param out: the contents to be written to a file (must be an iterator like a list with lists)
+        :return: none
+        """
         file_out = f'{path}/{filename}.log'
         if os.path.exists(file_out):
             tqdm.write(f"Logfile {filename} already exists! Overwriting the results.")
@@ -71,19 +78,14 @@ class ReportGenerator:
             return
         create_path_if_it_doesnt_exist(path)
 
-        out = ""
-        with open(path + "/" + filename + '.log', "a") as f:
-            for key, value in data.items():
-                # out += str(key) + ", "
-                if isinstance(value, list):
-                    for y in value:
-                        out += str(y) + ", "
-                out += "\n"
-            out += "++++++++++++++++++++++++++++\n"
+        out = []
+        for key, value in data.items():
+            if isinstance(value, list):
+                out.append(value)
 
-            f.write(out)
+        # Write results
+        self.write_to_csv(filename, path, out)
 
-        self.print_hash(path + "/" + filename + '.log')
 
     def generate_freeblock_report(self, path, filename, freeblocks):
         if freeblocks is None:
