@@ -73,9 +73,9 @@ class GUI:
             self.output = os.path.abspath(args.out)
 
         #CSV = 0 | XML = 1 | JSON = 2
-        if args.format is 'XML':
+        if args.format == 'XML':
             self.format = 1
-        elif args.format is 'JSON':
+        elif args.format == 'JSON':
             self.format = 2
 
     def process(self):
