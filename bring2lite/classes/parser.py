@@ -105,9 +105,12 @@ class Parser:
             content_length = payload_length - header_length
             current_page_cell_content = page[cell_offset + current_index: cell_offset + current_index + content_length] + overflow_content
 
-            tempresult = self._typeHelper(cell_types, current_page_cell_content)
-
-            res.append(tempresult)
+            try:
+                tempresult = self._typeHelper(cell_types, current_page_cell_content)
+                res.append(tempresult)
+            except Exception as e:
+                self.logger.debug("exception while parsing cells", e)
+                break
 
         self.logger.debug("end parsing cells")
         return res
@@ -132,7 +135,10 @@ class Parser:
                 result = result + p[4: 4 + size_to_extract]
                 return result
 
+            visitedPages = set()
             while next_page:
+                visitedPages.add(next_page)
+
                 if not self.is_wal:
                     f.seek(self.page_size * (next_page))
                 else:
@@ -142,6 +148,12 @@ class Parser:
                     next_page = unpack('>I', p[:4])[0]
                 except error:
                     break
+                
+                # Loop detection
+                if next_page in visitedPages:
+                    self.logger.debug("Loop detected in overflow_page refs")
+                    break;
+
                 if next_page:
                     result += (p[4: self.page_size - 4])
                 else:
