@@ -109,7 +109,7 @@ class Parser:
                 tempresult = self._typeHelper(cell_types, current_page_cell_content)
                 res.append(tempresult)
             except Exception as e:
-                self.logger.debug("exception while parsing cells", e)
+                self.logger.debug(f"exception while parsing cells at offset {cell_offset+current_index}", e)
                 break
 
         self.logger.debug("end parsing cells")
