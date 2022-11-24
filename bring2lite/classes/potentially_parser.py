@@ -32,13 +32,12 @@ class PotentiallyParser(Parser):
 
         self.start_of_cell_content_area = pageheader[3]
 
-        unalloc_content = None
         if self.is_trunk_page:
             unalloc_content = self._extract_trunk_page_content(page)
         else:
             unalloc_content = self._extract_unalloc_content(page, schema_offset)
-            if not unalloc_content:
-                return []
+        if not unalloc_content:
+            return []
 
 
         self.result = []
@@ -168,6 +167,8 @@ class PotentiallyParser(Parser):
                 break
 
         tmp_result = page[end_of_cell_pointer_array: self.page_size]
+        if not tmp_result:
+            return None
 
         start_of_content = 0
         offset_tester = unpack('>B', tmp_result[start_of_content: start_of_content + 1])[0]
