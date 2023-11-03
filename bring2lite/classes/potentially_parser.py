@@ -99,6 +99,9 @@ class PotentiallyParser(Parser):
             except error:
                 return self.result
 
+            if (current_index + content_length <1):
+                self.logger.debug(f"Unable to make progress in Potential: {cell_offset}, {current_index + content_length}")
+                stop = True
             cell_offset += current_index + content_length
 
             if cell_offset == len(unalloc_content):

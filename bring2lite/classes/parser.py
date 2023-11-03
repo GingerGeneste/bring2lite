@@ -108,8 +108,8 @@ class Parser:
             try:
                 tempresult = self._typeHelper(cell_types, current_page_cell_content)
                 res.append(tempresult)
-            except Exception as e:
-                self.logger.debug(f"exception while parsing cells at offset {cell_offset+current_index}", e)
+            except ValueError as e:
+                self.logger.debug(f"exception while parsing cells at offset {cell_offset+current_index}: {e}", e)
                 break
 
         self.logger.debug("end parsing cells")
@@ -199,30 +199,44 @@ class Parser:
             if t == 0:
                 cell_data.append(['NULL', 'NULL'])
             elif t == 1:
+                if len(data[index:])<1:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["8bit", unpack('>b', data[index:index + 1])[0]]
                 cell_data.append(d)
                 index += 1
             elif t == 2:
+                if len(data[index:])<2:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["16bit", unpack('>h', data[index:index + 2])[0]]
                 cell_data.append(d)
                 index += 2
             elif t == 3:
+                if len(data[index:])<3:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["24bit", int(binascii.hexlify(data[index:index + 3]), 16)]
                 cell_data.append(d)
                 index += 3
             elif t == 4:
+                if len(data[index:])<4:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["32bit", unpack('>i', data[index:index + 4])[0]]
                 cell_data.append(d)
                 index += 4
             elif t == 5:
+                if len(data[index:])<6:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["48bit", int(binascii.hexlify(data[index:index + 6]), 16)]
                 cell_data.append(d)
                 index += 6
             elif t == 6:
+                if len(data[index:])<8:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["64bit", unpack('>q', data[index:index + 8])[0]]
                 cell_data.append(d)
                 index += 8
             elif t == 7:
+                if len(data[index:])<8:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["64bitf", unpack('>d', data[index:index + 8])[0]]
                 cell_data.append(d)
                 index += 8
