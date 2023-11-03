@@ -1,81 +1,99 @@
 import os
 import hashlib
+import csv
 from tqdm import tqdm
-from colorama import *
-import binascii
-from tkinter import *
-from tkinter.filedialog import askopenfilename
-from tkinter.filedialog import askdirectory
+
+
+def create_path_if_it_doesnt_exist(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
 
 class ReportGenerator:
     def __init__(self):
         self.my_path = ""
 
-    def generateReport(self, path, filename, data, format="CSV", schema=["No schema found"]):
+    def generateReport(self, path, filename, data, schema=["No schema found"]):
+        """
+        Alternate results writer, using a CSV module to avoid not escaping comma's e.d.
+        :param path: path to directory to write the log files to
+        :param filename: name of the logfile (without .log postfix)
+        :param data: a list of lists containing carved records
+        :param schema: possibly found a database schema to be added on top of the log file
+        :return: None
+        """
         if data is None:
             return
 
-        if not os.path.exists(path):
-            os.makedirs(path)
+        create_path_if_it_doesnt_exist(path)
 
-        # if format:
-        #     with open(path+filename+'.csv', 'w', newline='') as f:
-        #         writer = csv.writer(f)
-        #         writer.writerows(data)
-        if data:
-            out = ""
-            for datatype in schema:
-                out += str(datatype) + ","
-            out += "\n"
+        # Iterator to create CSV from
+        out = []
+        # If a schema is found, add the column types to the top of the log file:
+        if schema:
+            out.append(schema)
+        else:
+            out.append(['no schema found'])
+        # A 'frame' is actually a possible carved record
+        # Represented as a list where each element is a list containing the type of
+        # column value and the column value itself
+        for frame in data:
+            csv_row = []
+            if isinstance(frame, list):
+                for column in frame:
+                    # If the carved record column is of type 'TEXT' try to decode it
+                    if self.is_text(column[0]):
+                        try:
+                            csv_row.append(column[1].decode('utf-8'))
+                        except UnicodeDecodeError:
+                            csv_row.append(column[1])
+                    # Otherwise just add the value as it is:
+                    else:
+                        csv_row.append(column[1])
+            out.append(csv_row)
 
-            for frame in data:
-                if isinstance(frame, list):
-                    for y in frame:
-                        if self.is_text(y[0]):
-                            try:
-                                out += str(y[1].decode('utf-8')) + ","
-                            except UnicodeDecodeError:
-                                out +=str(y[1]) + ","
-                                continue
-                        else:
-                            out += str(y[1]) + ","
-                out += "\n"
-            out += "++++++++++++++++++++++++++++\n"
-            try:
-                with open(path + "/" + filename + '.log', "a") as f:
-                    f.write(out)
-            except UnicodeEncodeError:
-                tqdm.write("can not write the record because of unicode errors")
+        # Write results
+        self.write_to_csv(filename, path, out)
 
-            self.print_hash(path + "/" + filename + '.log')
+    def write_to_csv(self, filename, path, out):
+        """
+        Write the contents of out to the filename by using the csv writer module
+        :param filename: name of the file to write to
+        :param path: path where the file will be written to
+        :param out: the contents to be written to a file (must be an iterator like a list with lists)
+        :return: none
+        """
+        file_out = f'{path}/{filename}.log'
+        if os.path.exists(file_out):
+            tqdm.write(f"Logfile {filename} already exists! Overwriting the results.")
+        try:
+            with open(file_out, 'w', newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerows(out)
+
+        except UnicodeEncodeError:
+            tqdm.write("can not write the record because of unicode errors")
+
+        self.print_hash(file_out)
 
     def generate_schema_report(self, path, filename, data, csv):
         if data is None:
             return
+        create_path_if_it_doesnt_exist(path)
 
-        if not os.path.exists(path):
-            os.makedirs(path)
+        out = []
+        for key, value in data.items():
+            if isinstance(value, list):
+                out.append(value)
 
-        out = ""
-        with open(path + "/" + filename + '.log', "a") as f:
-            for key, value in data.items():
-                # out += str(key) + ", "
-                if isinstance(value, list):
-                    for y in value:
-                        out += str(y) + ", "
-                out += "\n"
-            out += "++++++++++++++++++++++++++++\n"
+        # Write results
+        self.write_to_csv(filename, path, out)
 
-            f.write(out)
-
-        self.print_hash(path + "/" + filename + '.log')
 
     def generate_freeblock_report(self, path, filename, freeblocks):
         if freeblocks is None:
             return
-
-        if not os.path.exists(path):
-            os.makedirs(path)
+        create_path_if_it_doesnt_exist(path)
 
         with open(path + "/" + filename + '.log', "a") as f:
             for solutions in freeblocks:

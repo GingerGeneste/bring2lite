@@ -98,6 +98,9 @@ class GUI:
             self.walp = WALParser()
 
             for i in tqdm(self.wals):
+                if os.stat(i).st_size == 0:
+                    tqdm.write(f"Wal file empty: {i}")
+                    return
                 if i[0:-4] in self.sqlites:
                     self.walp.parse(i, self.output, self.format, True)
                 else:
