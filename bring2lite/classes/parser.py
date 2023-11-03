@@ -105,9 +105,12 @@ class Parser:
             content_length = payload_length - header_length
             current_page_cell_content = page[cell_offset + current_index: cell_offset + current_index + content_length] + overflow_content
 
-            tempresult = self._typeHelper(cell_types, current_page_cell_content)
-
-            res.append(tempresult)
+            try:
+                tempresult = self._typeHelper(cell_types, current_page_cell_content)
+                res.append(tempresult)
+            except ValueError as e:
+                self.logger.debug(f"exception while parsing cells at offset {cell_offset+current_index}: {e}", e)
+                break
 
         self.logger.debug("end parsing cells")
         return res
@@ -132,7 +135,10 @@ class Parser:
                 result = result + p[4: 4 + size_to_extract]
                 return result
 
+            visitedPages = set()
             while next_page:
+                visitedPages.add(next_page)
+
                 if not self.is_wal:
                     f.seek(self.page_size * (next_page))
                 else:
@@ -142,6 +148,12 @@ class Parser:
                     next_page = unpack('>I', p[:4])[0]
                 except error:
                     break
+                
+                # Loop detection
+                if next_page in visitedPages:
+                    self.logger.debug("Loop detected in overflow_page refs")
+                    break;
+
                 if next_page:
                     result += (p[4: self.page_size - 4])
                 else:
@@ -187,30 +199,44 @@ class Parser:
             if t == 0:
                 cell_data.append(['NULL', 'NULL'])
             elif t == 1:
+                if len(data[index:])<1:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["8bit", unpack('>b', data[index:index + 1])[0]]
                 cell_data.append(d)
                 index += 1
             elif t == 2:
+                if len(data[index:])<2:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["16bit", unpack('>h', data[index:index + 2])[0]]
                 cell_data.append(d)
                 index += 2
             elif t == 3:
+                if len(data[index:])<3:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["24bit", int(binascii.hexlify(data[index:index + 3]), 16)]
                 cell_data.append(d)
                 index += 3
             elif t == 4:
+                if len(data[index:])<4:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["32bit", unpack('>i', data[index:index + 4])[0]]
                 cell_data.append(d)
                 index += 4
             elif t == 5:
+                if len(data[index:])<6:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["48bit", int(binascii.hexlify(data[index:index + 6]), 16)]
                 cell_data.append(d)
                 index += 6
             elif t == 6:
+                if len(data[index:])<8:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["64bit", unpack('>q', data[index:index + 8])[0]]
                 cell_data.append(d)
                 index += 8
             elif t == 7:
+                if len(data[index:])<8:
+                    raise ValueError('Short data:  ' + binascii.hexlify(data).decode('ASCII'))
                 d = ["64bitf", unpack('>d', data[index:index + 8])[0]]
                 cell_data.append(d)
                 index += 8
